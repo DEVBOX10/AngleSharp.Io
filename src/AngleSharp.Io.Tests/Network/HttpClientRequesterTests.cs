@@ -71,7 +71,7 @@ namespace AngleSharp.Io.Tests.Network
             // ASSERT
             response.Address.Should().BeEquivalentTo(ts.Request.Address);
             response.StatusCode.Should().Be(ts.HttpResponseMessage.StatusCode);
-            response.Headers.Keys.Should().BeEquivalentTo(new[] {"Server", "X-Powered-By", "X-CSV", "Content-Type"});
+            response.Headers.Keys.Should().BeEquivalentTo(new[] {"Server", "X-Powered-By", "X-CSV", "Content-Type", "Content-Length"});
             response.Headers["Server"].Should().Be("Fake");
             response.Headers["X-Powered-By"].Should().Be("Magic");
             response.Headers["X-CSV"].Should().Be("foo, bar");
@@ -91,11 +91,11 @@ namespace AngleSharp.Io.Tests.Network
             // ASSERT
             response.Address.Should().BeEquivalentTo(ts.Request.Address);
             response.StatusCode.Should().Be(ts.HttpResponseMessage.StatusCode);
-            response.Headers.Keys.Should().BeEquivalentTo(new[] {"Server", "X-Powered-By", "X-CSV"});
+            response.Headers.Keys.Should().BeEquivalentTo(new[] {"Server", "X-Powered-By", "X-CSV", "Content-Length"});
             response.Headers["Server"].Should().Be("Fake");
             response.Headers["X-Powered-By"].Should().Be("Magic");
             response.Headers["X-CSV"].Should().Be("foo, bar");
-            response.Content.Should().BeNull();
+            new StreamReader(response.Content, Encoding.UTF8).ReadToEnd().Should().Be("");
         }
 
         [Test]
@@ -122,7 +122,7 @@ namespace AngleSharp.Io.Tests.Network
                 var requester = new HttpClientRequester(httpClient);
                 var configuration = Configuration.Default.With(requester).WithDefaultLoader();
                 var context = BrowsingContext.New(configuration);
-                var request = DocumentRequest.Get(Url.Create("http://httpbin.org/html"));
+                var request = DocumentRequest.Get(Url.Create("http://httpbingo.org/html"));
 
                 // ACT
                 var response = await context.GetService<IDocumentLoader>().FetchAsync(request).Task;

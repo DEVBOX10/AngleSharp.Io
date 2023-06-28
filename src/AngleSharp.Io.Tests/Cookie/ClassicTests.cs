@@ -192,7 +192,7 @@ namespace AngleSharp.Io.Tests.Cookie
         {
             if (Helper.IsNetworkAvailable())
             {
-                var url = "https://httpbin.org/cookies/set?k1=v1";
+                var url = "https://httpbingo.org/cookies/set?k1=v1";
                 var config = Configuration.Default.WithCookies().WithDefaultLoader();
                 var context = BrowsingContext.New(config);
                 var document = await context.OpenAsync(url);
@@ -206,7 +206,7 @@ namespace AngleSharp.Io.Tests.Cookie
         {
             if (Helper.IsNetworkAvailable())
             {
-                var url = "https://httpbin.org/cookies/set?k2=v2&k1=v1";
+                var url = "https://httpbingo.org/cookies/set?k2=v2&k1=v1";
                 var config = Configuration.Default.WithCookies().WithDefaultLoader();
                 var context = BrowsingContext.New(config);
                 var document = await context.OpenAsync(url);
@@ -221,7 +221,7 @@ namespace AngleSharp.Io.Tests.Cookie
         {
             if (Helper.IsNetworkAvailable())
             {
-                var url = "https://httpbin.org/cookies/set?test=baz&k2=v2&k1=v1&foo=bar";
+                var url = "https://httpbingo.org/cookies/set?test=baz&k2=v2&k1=v1&foo=bar";
                 var config = Configuration.Default.WithCookies().WithDefaultLoader();
                 var context = BrowsingContext.New(config);
                 var document = await context.OpenAsync(url);
@@ -236,7 +236,7 @@ namespace AngleSharp.Io.Tests.Cookie
         {
             if (Helper.IsNetworkAvailable())
             {
-                var baseUrl = "https://httpbin.org/cookies";
+                var baseUrl = "https://httpbingo.org/cookies";
                 var url = baseUrl + "/set?test=baz&k2=v2&k1=v1&foo=bar";
                 var config = Configuration.Default.WithCookies().WithDefaultLoader();
                 var context = BrowsingContext.New(config);
@@ -244,38 +244,33 @@ namespace AngleSharp.Io.Tests.Cookie
                 var document = await context.OpenAsync(baseUrl);
 
                 var expected = @"{
-  ""cookies"": {
-    ""foo"": ""bar"", 
-    ""k1"": ""v1"", 
-    ""k2"": ""v2"", 
-    ""test"": ""baz""
-  }
+  ""foo"": ""bar"",
+  ""k1"": ""v1"",
+  ""k2"": ""v2"",
+  ""test"": ""baz""
 }
-".Replace(Environment.NewLine, "\n");
+".Replace("\r\n", "\n");
 
                 Assert.AreEqual(expected, document.Body.TextContent);
             }
         }
 
         [Test]
-        [Ignore("We should find a replacement for HttpBin.org")]
         public async Task SettingCookieIsPreservedViaRedirect()
         {
             if (Helper.IsNetworkAvailable())
             {
-                var cookieUrl = "https://httpbin.org/cookies/set?test=baz";
-                var redirectUrl = "https://httpbin.org/redirect-to?url=https%3A%2F%2Fhttpbin.org%2Fcookies";
+                var cookieUrl = "https://httpbingo.org/cookies/set?test=baz";
+                var redirectUrl = "https://httpbingo.org/redirect-to?url=https%3A%2F%2Fhttpbingo.org%2Fcookies";
                 var config = Configuration.Default.WithCookies().WithDefaultLoader();
                 var context = BrowsingContext.New(config);
                 await context.OpenAsync(cookieUrl);
                 var document = await context.OpenAsync(redirectUrl);
 
                 Assert.AreEqual(@"{
-  ""cookies"": {
-    ""test"": ""baz""
-  }
+  ""test"": ""baz""
 }
-".Replace(Environment.NewLine, "\n"), document.Body.TextContent);
+".Replace("\r\n", "\n"), document.Body.TextContent);
             }
         }
 
@@ -429,13 +424,14 @@ namespace AngleSharp.Io.Tests.Cookie
             var mcp = new MemoryCookieProvider();
             var config = Configuration.Default.With(mcp).With(requester).WithDefaultLoader();
             var context = BrowsingContext.New(config);
-            var receivedCookieHeader = "THECOOKIE=value1";
+            var setCookie = "THECOOKIE=value1";
+            var receivedCookieHeader = "";
             var url = new Url("http://example.com/path1");
             //request 1: /path1, set a cookie THECOOKIE=value1
             requester.BuildResponse(req => VirtualResponse.Create(r => r
                 .Address("http://example.com/path1")
                 .Content("")
-                .Header(HeaderNames.SetCookie, receivedCookieHeader)));
+                .Header(HeaderNames.SetCookie, setCookie)));
             context.OpenAsync("http://example.com/path1");
             //request 2: /path1/somefile.jsp redirects to /path2/file2.jsp
             requester.BuildResponses(new Func<Request, IResponse>[] {
@@ -452,7 +448,7 @@ namespace AngleSharp.Io.Tests.Cookie
                 }
             });
             context.OpenAsync("http://example.com/path1/somefile.jsp");
-            Assert.AreEqual(String.Empty, receivedCookieHeader);
+            Assert.AreEqual(setCookie, receivedCookieHeader);
         }
 
         private static Task<IDocument> LoadDocumentWithFakeRequesterAndCookie(IResponse initialResponse,
